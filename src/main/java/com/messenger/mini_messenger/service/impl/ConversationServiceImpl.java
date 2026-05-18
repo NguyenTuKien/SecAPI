@@ -46,6 +46,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Service
+@Transactional(readOnly = true)
 public class ConversationServiceImpl implements ConversationService {
 
     private final ConversationRepository conversationRepository;
