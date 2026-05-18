@@ -58,6 +58,7 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<MessageResponse> getMessages(CurrentUser currentUser, UUID conversationId, int limit) {
         requireParticipant(currentUser, conversationId);
         if (limit < 1 || limit > 100) {

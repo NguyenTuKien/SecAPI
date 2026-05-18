@@ -112,6 +112,7 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ConversationResponse> list(CurrentUser currentUser) {
         return conversationRepository.findActiveConversationsForUser(currentUser.userId())
                 .stream()
@@ -120,6 +121,7 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ConversationResponse get(CurrentUser currentUser, UUID conversationId) {
         return conversationMapper.toResponse(findAccessibleConversation(currentUser, conversationId));
     }
@@ -158,6 +160,7 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public EncryptedConversationKeyResponse getMyEncryptedKey(CurrentUser currentUser, UUID conversationId, Integer keyVersion) {
         Conversation conversation = findAccessibleConversation(currentUser, conversationId);
         int version = keyVersion == null ? conversation.getCurrentKeyVersion() : keyVersion;
