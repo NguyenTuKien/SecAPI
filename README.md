@@ -6,12 +6,8 @@ Hệ thống được thiết kế theo kiến trúc Zero-Trust với các thàn
 - **Client side**: Giao diện người dùng để truy cập vào hệ thống.
 - **API Gateway**: Chịu trách nhiệm phân phối yêu cầu từ client đến các dịch vụ backend và thực hiện xác thực, ủy quyền.
 - **Server side**: Bao gồm các dịch vụ backend xử lý logic nghiệp vụ và quản lý dữ liệu.
-- **MongoDB**: Cơ sở dữ liệu NoSQL để lưu trữ thông tin người dùng, khóa và các dữ liệu liên quan.
+- **PostgreSQL**: Cơ sở dữ liệu để lưu trữ thông tin người dùng, khóa và các dữ liệu liên quan.
 - **Redis**: Hệ thống lưu trữ tạm thời để quản lý phiên làm việc và các khóa phân phối.
-- **Cloudflare R2**: Dịch vụ lưu trữ đám mây để lưu trữ các tệp tin và dữ liệu lớn.
-- **Cloudflare tunnel**: Dịch vụ để bảo vệ và ẩn địa chỉ IP của server, đảm bảo an toàn cho hệ thống.
-- **Kubernetes**: Hệ thống quản lý container để triển khai và vận hành các dịch vụ backend một cách hiệu quả và linh hoạt.
-- Một số công cụ hỗ trợ khác như **Docker** để container hóa ứng dụng, **Prometheus** và **Grafana** để giám sát hệ thống, **Git & Github** để quản lý mã nguồn và triển khai CI/CD.
 ---
 
 ## 2. Luồng hoạt động
