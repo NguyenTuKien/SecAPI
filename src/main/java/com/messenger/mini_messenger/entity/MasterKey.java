@@ -9,10 +9,13 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -36,8 +39,9 @@ public class MasterKey extends BaseEntity {
     @Column(name = "pin_salt", length = 128, nullable = false)
     private String pinSalt;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "kdf_params", columnDefinition = "json", nullable = false)
-    private String kdfParams;
+    private Map<String, Object> kdfParams;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 20, nullable = false)

@@ -1,6 +1,5 @@
 package com.messenger.mini_messenger.service.impl;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.messenger.mini_messenger.dto.request.MasterKeyRequest;
 import com.messenger.mini_messenger.dto.request.UpdateUserRequest;
 import com.messenger.mini_messenger.entity.AuthIdentity;
@@ -15,7 +14,6 @@ import com.messenger.mini_messenger.repository.MasterKeyRepository;
 import com.messenger.mini_messenger.repository.UserRepository;
 import com.messenger.mini_messenger.repository.UserSessionRepository;
 import com.messenger.mini_messenger.security.CurrentUser;
-import com.messenger.mini_messenger.util.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,7 +57,6 @@ class UserServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        JsonUtil jsonUtil = new JsonUtil(JsonMapper.builder().findAndAddModules().build());
         userService = new UserServiceImpl(
                 userRepository,
                 masterKeyRepository,
@@ -67,7 +64,7 @@ class UserServiceImplTest {
                 authIdentityRepository,
                 passwordEncoder,
                 new UserMapper(),
-                new MasterKeyMapper(jsonUtil)
+                new MasterKeyMapper()
         );
     }
 
@@ -75,7 +72,7 @@ class UserServiceImplTest {
     void updatesEmailDisplayNameAvatarPasswordAndEncryptedMasterKey() {
         UUID userId = UUID.randomUUID();
         User user = user(userId);
-        AuthIdentity identity = localIdentity(user, "$old");
+        AuthIdentity identity = localIdentity(user);
         MasterKeyRequest newMasterKey = new MasterKeyRequest(
                 "bmV3LXB1YmxpYw==",
                 "bmV3LWVuY3J5cHRlZC1wcml2YXRl",
@@ -164,7 +161,7 @@ class UserServiceImplTest {
     void rejectsPasswordChangeWhenCurrentPasswordIsWrong() {
         UUID userId = UUID.randomUUID();
         User user = user(userId);
-        AuthIdentity identity = localIdentity(user, "$old");
+        AuthIdentity identity = localIdentity(user);
         UpdateUserRequest request = new UpdateUserRequest(
                 null,
                 null,
@@ -199,18 +196,18 @@ class UserServiceImplTest {
         masterKey.setEncryptedPrivateKey("b2xkLWVuY3J5cHRlZC1wcml2YXRl");
         masterKey.setPrivateKeyIv("b2xkLWl2");
         masterKey.setPinSalt("b2xkLXNhbHQ=");
-        masterKey.setKdfParams("{\"algo\":\"PBKDF2\"}");
+        masterKey.setKdfParams(Map.of("algo", "PBKDF2"));
         user.setMasterKey(masterKey);
         return user;
     }
 
-    private AuthIdentity localIdentity(User user, String passwordHash) {
+    private AuthIdentity localIdentity(User user) {
         AuthIdentity identity = new AuthIdentity();
         identity.setUser(user);
         identity.setProvider(AuthProvider.LOCAL);
         identity.setProviderSubject(user.getUsername());
         identity.setProviderEmail(user.getEmail());
-        identity.setPasswordHash(passwordHash);
+        identity.setPasswordHash("$old");
         return identity;
     }
 }

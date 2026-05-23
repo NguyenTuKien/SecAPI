@@ -26,13 +26,13 @@ The following guides illustrate how to use some features concretely:
 * [Securing a Web Application](https://spring.io/guides/gs/securing-web/)
 * [Spring Boot and OAuth2](https://spring.io/guides/tutorials/spring-boot-oauth2/)
 * [Authenticating a User with LDAP](https://spring.io/guides/gs/authenticating-ldap/)
-* [Accessing data with MySQL](https://spring.io/guides/gs/accessing-data-mysql/)
+* [Accessing data with PostgreSQL](https://spring.io/guides/gs/accessing-data-jpa/)
 
 ### Docker Compose support
-This project contains a Docker Compose file named `compose.yaml`.
+This project contains a Docker Compose file named `docker-compose.yaml`.
 In this file, the following services have been defined:
 
-* mysql: [`mariadb:11.4`](https://hub.docker.com/_/mariadb) (MariaDB LTS)
+* database: [`postgres:16-alpine`](https://hub.docker.com/_/postgres) (PostgreSQL)
 
 Please review the tags of the used images and set them to the same as you're running in production.
 

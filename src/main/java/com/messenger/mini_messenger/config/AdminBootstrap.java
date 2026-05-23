@@ -7,10 +7,12 @@ import com.messenger.mini_messenger.enums.AuthProvider;
 import com.messenger.mini_messenger.enums.UserRole;
 import com.messenger.mini_messenger.enums.UserStatus;
 import com.messenger.mini_messenger.repository.UserRepository;
+import com.messenger.mini_messenger.util.JsonUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +28,7 @@ public class AdminBootstrap implements ApplicationRunner {
     private final String privateKeyIv;
     private final String pinSalt;
     private final String kdfParams;
+    private final JsonUtil jsonUtil;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -39,6 +42,7 @@ public class AdminBootstrap implements ApplicationRunner {
             @Value("${app.bootstrap.admin.master-key.private-key-iv:YWRtaW4taXY=}") String privateKeyIv,
             @Value("${app.bootstrap.admin.master-key.pin-salt:123456}") String pinSalt,
             @Value("${app.bootstrap.admin.master-key.kdf-params:{\"algorithm\":\"PBKDF2\",\"iterations\":100000,\"keyLength\":256,\"digest\":\"SHA-256\",\"bootstrap\":true}}") String kdfParams,
+            JsonUtil jsonUtil,
             UserRepository userRepository,
             PasswordEncoder passwordEncoder
     ) {
@@ -51,13 +55,14 @@ public class AdminBootstrap implements ApplicationRunner {
         this.privateKeyIv = privateKeyIv;
         this.pinSalt = pinSalt;
         this.kdfParams = kdfParams;
+        this.jsonUtil = jsonUtil;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     @Transactional
-    public void run(ApplicationArguments args) {
+    public void run(@NonNull ApplicationArguments args) {
         if (!enabled || userRepository.existsByUsername(username)) {
             return;
         }
@@ -84,7 +89,7 @@ public class AdminBootstrap implements ApplicationRunner {
         masterKey.setEncryptedPrivateKey(encryptedPrivateKey);
         masterKey.setPrivateKeyIv(privateKeyIv);
         masterKey.setPinSalt(pinSalt);
-        masterKey.setKdfParams(kdfParams);
+        masterKey.setKdfParams(jsonUtil.toMap(kdfParams));
         admin.setMasterKey(masterKey);
 
         userRepository.save(admin);
