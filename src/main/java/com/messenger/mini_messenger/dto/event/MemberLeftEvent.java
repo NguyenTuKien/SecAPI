@@ -1,4 +1,4 @@
-package com.messenger.mini_messenger.event;
+package com.messenger.mini_messenger.dto.event;
 
 import java.util.UUID;
 

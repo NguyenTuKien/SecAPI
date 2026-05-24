@@ -6,6 +6,7 @@ import com.messenger.mini_messenger.dto.request.CreateConversationRequest;
 import com.messenger.mini_messenger.dto.request.EncryptedConversationKeyRequest;
 import com.messenger.mini_messenger.dto.request.StoreConversationKeysRequest;
 import com.messenger.mini_messenger.dto.request.UpdateConversationRequest;
+import com.messenger.mini_messenger.dto.event.MemberLeftEvent;
 import com.messenger.mini_messenger.dto.response.ApiMessageResponse;
 import com.messenger.mini_messenger.dto.response.ConversationResponse;
 import com.messenger.mini_messenger.dto.response.EncryptedConversationKeyResponse;
@@ -33,6 +34,7 @@ import com.messenger.mini_messenger.repository.UserSessionRepository;
 import com.messenger.mini_messenger.security.CurrentUser;
 import com.messenger.mini_messenger.service.ConversationService;
 import com.messenger.mini_messenger.util.RedisKeyUtil;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -59,6 +61,7 @@ public class ConversationServiceImpl implements ConversationService {
     private final ConversationMapper conversationMapper;
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     public ConversationServiceImpl(
             ConversationRepository conversationRepository,
@@ -70,7 +73,8 @@ public class ConversationServiceImpl implements ConversationService {
             UserSessionRepository sessionRepository,
             ConversationMapper conversationMapper,
             StringRedisTemplate redisTemplate,
-            ObjectMapper objectMapper
+            ObjectMapper objectMapper,
+            ApplicationEventPublisher eventPublisher
     ) {
         this.conversationRepository = conversationRepository;
         this.memberRepository = memberRepository;
@@ -82,6 +86,7 @@ public class ConversationServiceImpl implements ConversationService {
         this.conversationMapper = conversationMapper;
         this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -146,6 +151,7 @@ public class ConversationServiceImpl implements ConversationService {
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Conversation membership not found"));
         member.setStatus(ConversationMemberStatus.LEFT);
         member.setLeftAt(Instant.now());
+        eventPublisher.publishEvent(new MemberLeftEvent(conversationId, currentUser.userId()));
         return new ApiMessageResponse("Left conversation successfully");
     }
 
@@ -201,6 +207,9 @@ public class ConversationServiceImpl implements ConversationService {
     public ApiMessageResponse rotateKeys(CurrentUser currentUser, UUID conversationId, StoreConversationKeysRequest request) {
         Conversation conversation = findAccessibleConversation(currentUser, conversationId);
         requireOwner(currentUser, conversation);
+        if (request.newKeyVersion() <= conversation.getCurrentKeyVersion()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "New key version must be greater than current key version");
+        }
         conversation.setCurrentKeyVersion(request.newKeyVersion());
         ConversationKeyVersion keyVersion = createKeyVersion(conversation, findUser(currentUser.userId()), request.newKeyVersion(), request.reason());
         storeEncryptedKeys(conversation, keyVersion, request.encryptedKeys());

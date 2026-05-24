@@ -14,7 +14,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import com.messenger.mini_messenger.entity.ConversationMember;
 import com.messenger.mini_messenger.entity.UserSession;
-import com.messenger.mini_messenger.event.MemberLeftEvent;
+import com.messenger.mini_messenger.dto.event.MemberLeftEvent;
 import com.messenger.mini_messenger.repository.UserSessionRepository;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
