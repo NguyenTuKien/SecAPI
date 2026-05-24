@@ -254,11 +254,19 @@ public class ConversationServiceImpl implements ConversationService {
             validateEncryptedKeyRequest(conversation, keyVersion, encryptedKey);
             if (encryptedKey.recipientType() == ConversationKeyRecipientType.MASTER) {
                 MasterKey masterKey = findMasterKeyForUser(encryptedKey);
-                ConversationKeyBackup backup = new ConversationKeyBackup();
-                backup.setConversation(conversation);
-                backup.setKeyVersion(keyVersion);
-                backup.setUser(masterKey.getUser());
-                backup.setMasterKey(masterKey);
+                ConversationKeyBackup backup = keyBackupRepository.findByConversationIdAndUserIdAndKeyVersionKeyVersion(
+                                conversation.getId(),
+                                encryptedKey.userId(),
+                                keyVersion.getKeyVersion()
+                        )
+                        .orElseGet(() -> {
+                            ConversationKeyBackup newBackup = new ConversationKeyBackup();
+                            newBackup.setConversation(conversation);
+                            newBackup.setKeyVersion(keyVersion);
+                            newBackup.setUser(masterKey.getUser());
+                            newBackup.setMasterKey(masterKey);
+                            return newBackup;
+                        });
                 backup.setEncryptedConversationKey(encryptedKey.encryptedConversationKey());
                 keyBackupRepository.save(backup);
             } else {
