@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 
@@ -67,9 +66,6 @@ class ConversationServiceImplTest {
     @Mock
     private StringRedisTemplate redisTemplate;
 
-    @Mock
-    private ApplicationEventPublisher eventPublisher;
-
     private ConversationServiceImpl conversationService;
 
     @BeforeEach
@@ -84,8 +80,7 @@ class ConversationServiceImplTest {
                 sessionRepository,
                 new ConversationMapper(new UserMapper()),
                 redisTemplate,
-                JsonMapper.builder().findAndAddModules().build(),
-                eventPublisher
+                JsonMapper.builder().findAndAddModules().build()
         );
     }
 
@@ -170,9 +165,45 @@ class ConversationServiceImplTest {
         verify(masterKeyRepository, never()).findById(masterKeyId);
     }
 
+    @Test
+    void storeKeysAdvancesConversationCurrentKeyVersionWhenNewerKeyIsStored() {
+        UUID ownerId = UUID.randomUUID();
+        UUID conversationId = UUID.randomUUID();
+        UUID masterKeyId = UUID.randomUUID();
+        Conversation conversation = conversation(conversationId, ownerId);
+        conversation.setCurrentKeyVersion(1);
+        ConversationKeyVersion createdVersion = keyVersion(conversation, 2);
+        MasterKey masterKey = masterKey(ownerId, masterKeyId);
+        var request = new StoreConversationKeysRequest(
+                2,
+                "SESSION_WITHOUT_PIN",
+                List.of(new EncryptedConversationKeyRequest(
+                        ownerId,
+                        ConversationKeyRecipientType.MASTER,
+                        masterKeyId,
+                        "ZW5jcnlwdGVkLWtleQ==",
+                        2
+                ))
+        );
+
+        when(memberRepository.findByConversationIdAndUserIdAndStatus(
+                conversationId,
+                ownerId,
+                ConversationMemberStatus.ACTIVE
+        )).thenReturn(Optional.of(new ConversationMember()));
+        when(conversationRepository.findById(conversationId)).thenReturn(Optional.of(conversation));
+        when(keyVersionRepository.findByConversationIdAndKeyVersion(conversationId, 2)).thenReturn(Optional.empty());
+        when(userRepository.findById(ownerId)).thenReturn(Optional.of(user(ownerId)));
+        when(keyVersionRepository.save(org.mockito.ArgumentMatchers.any(ConversationKeyVersion.class))).thenReturn(createdVersion);
+        when(masterKeyRepository.findById(masterKeyId)).thenReturn(Optional.of(masterKey));
+
+        conversationService.storeKeys(new CurrentUser(ownerId, "owner", UUID.randomUUID()), conversationId, request);
+
+        assertEquals(2, conversation.getCurrentKeyVersion());
+    }
+
     private Conversation conversation(UUID conversationId, UUID memberId) {
-        User memberUser = new User();
-        memberUser.setId(memberId);
+        User memberUser = user(memberId);
         Conversation conversation = new Conversation();
         conversation.setId(conversationId);
         ConversationMember member = new ConversationMember();
@@ -197,5 +228,11 @@ class ConversationServiceImplTest {
         masterKey.setId(masterKeyId);
         masterKey.setUser(user);
         return masterKey;
+    }
+
+    private User user(UUID userId) {
+        User user = new User();
+        user.setId(userId);
+        return user;
     }
 }
