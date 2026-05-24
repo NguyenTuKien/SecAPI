@@ -6,10 +6,13 @@ Hệ thống được thiết kế theo kiến trúc Zero-Trust với các thàn
 - **Client side**: Giao diện người dùng để truy cập vào hệ thống.
 - **API Gateway**: Chịu trách nhiệm phân phối yêu cầu từ client đến các dịch vụ backend và thực hiện xác thực, ủy quyền.
 - **Server side**: Bao gồm các dịch vụ backend xử lý logic nghiệp vụ và quản lý dữ liệu.
+<<<<<<< HEAD
 - **PostgreSQL**: Cơ sở dữ liệu để lưu trữ thông tin người dùng, khóa và các dữ liệu liên quan.
+=======
+- **PostgreSQL**: Cơ sở dữ liệu quan hệ để lưu trữ thông tin người dùng, khóa và các dữ liệu liên quan.
+>>>>>>> f4015ff (feat: Add rotating key job)
 - **Redis**: Hệ thống lưu trữ tạm thời để quản lý phiên làm việc và các khóa phân phối.
 ---
-
 ## 2. Luồng hoạt động
 ### 2.1. Đăng kí 
 - User nhập `username`, `password`, `confirmPassword` và `pinCode` vào form đăng kí.
